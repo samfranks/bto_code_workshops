@@ -1,0 +1,97 @@
+---
+title: "BTO coding challenge - R workshop 2018-08-07"
+author: "Samantha Franks"
+date: '2018-07-30'
+output: 
+  html_document: default
+  html_notebook: default
+editor_options: 
+  chunk_output_type: console
+---
+
+This code presents a solution to Jenni Border's coding challenge:
+
+### The problem
+
+*You have a large dataset which has about 300,000 rows and 15 columns, but only 3 columns are relevant here:*
+
+1. *one of the columns identifies 1-km squares*
+2. *one identifies regions*
+3. *one identifies the area of the 1-km square within a region*
+
+*Your desired outcome is a dataset with a single row for each 1-km square. But currently, you have some rows (about 5%), which all refer to the same 1-km square but differ in their region and area columns. You want to keep the row with the maximum area of the 1-km square in the region and drop the others.*
+
+*Clarification: the idea is to select a region for each 1-km square based on which of the possible regions occupies the largest area of the square.*
+
+###The solution
+```{r setup, include=FALSE}
+# load packages
+library(tidyverse)
+library(pryr)
+
+# set file paths
+wd <- ("C:/Users/samf/Documents/Git/bto_workshops")
+input_file <- paste(wd, "NUTS1_kmsq.csv", sep="/")
+output_file <- paste(wd, "new_data.csv", sep="/")
+```
+
+Session info is given here:
+```{r session-info, echo=FALSE}
+# capture sessionInfo
+sessionInfo()
+```
+
+***
+
+####Load and inspect the dataset
+
+```{r load-data, include=FALSE}
+dat0 <- read.csv(input_file)
+```
+
+```{r inspect-data}
+str(dat0)
+summary(dat0)
+names(dat0)
+head(dat0)
+object_size(dat0)
+
+# re-classify factors as character vectors for simplification later
+ 
+i <- sapply(dat0, is.factor)
+dat0[i] <- lapply(dat0[i], as.character)
+str(dat0)
+
+```
+
+```{r identify-filter-duplicated-gridref-rows}
+
+# identify duplicate 1km squares
+dup_squares <- dat0[which(duplicated(dat0$ONEKMREF)), "ONEKMREF"]
+length(dup_squares)
+
+# pull out all rows with duplicated 1km squares
+dup_squares_rows <- dat0[which(dat0$ONEKMREF %in% dup_squares),]
+nrow(dup_squares_rows)
+
+# remove duplicated 1km squares from master dataset
+dat1 <- dat0[-(which(dat0$ONEKMREF %in% dup_squares)),]
+
+# from duplicate squares, identify which has the biggest area
+# merge biggest area squares object back into all duplicated square data
+max_area_squares <- aggregate(kmsq_Area ~ ONEKMREF, dup_squares_rows, max) %>%
+  merge(., dup_squares_rows, all.x=TRUE)
+str(max_area_squares)
+```
+
+```{r rbind-all-data}
+
+# add non-duplicated squares back into master dataset
+final <- rbind(dat1, max_area_squares[,names(dat1)])
+str(final)
+
+```
+There were `r anyDuplicated(dat0$ONEKMREF)` duplicated 1 km squares in the original dataset and `r anyDuplicated(final$ONEKMREF)` in the clean dataset, with the duplicated square now being used as the one in the region occupying the largest area of the square. 
+
+
+
