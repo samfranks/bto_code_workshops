@@ -6,7 +6,7 @@ output:
   html_document: default
   html_notebook: default
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 This code presents a solution to Jenni Border's coding challenge:
