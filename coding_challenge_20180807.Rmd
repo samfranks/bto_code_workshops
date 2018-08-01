@@ -23,7 +23,7 @@ This code presents a solution to Jenni Border's coding challenge:
 
 *Clarification: the idea is to select a region for each 1-km square based on which of the possible regions occupies the largest area of the square.*
 
-###The solution
+### The solution
 ```{r setup, include=FALSE}
 # load packages
 library(tidyverse)
@@ -43,7 +43,7 @@ sessionInfo()
 
 ***
 
-####Load and inspect the dataset
+#### Load and inspect the dataset
 
 ```{r load-data, include=FALSE}
 dat0 <- read.csv(input_file)
@@ -89,6 +89,8 @@ str(max_area_squares)
 # add non-duplicated squares back into master dataset
 final <- rbind(dat1, max_area_squares[,names(dat1)])
 str(final)
+
+write.csv(output_file)
 
 ```
 There were `r anyDuplicated(dat0$ONEKMREF)` duplicated 1 km squares in the original dataset and `r anyDuplicated(final$ONEKMREF)` in the clean dataset, with the duplicated square now being used as the one in the region occupying the largest area of the square. 
