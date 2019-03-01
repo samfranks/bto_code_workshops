@@ -1,0 +1,382 @@
+---
+title: "R Workshop: Introduction to package data.table"
+author: "Samantha Franks"
+date: "5 March 2019"
+output: ioslides_presentation
+
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE)
+
+# ======================   Variables to pass to setup code source  ===========
+
+# Header code to install and load packages, set directory paths, set seed, capture session info
+
+# project_details <- list(project_name, output_version_name, workspace_version_name)
+# package_details <- c("package name 1", "package name 2")
+
+project_details <- list(project_name="bto_workshops/2019-03", output_version_date="", workspace_version_date="")
+package_details <- c("raster","sp","rgeos","rgdal","tidyverse","birdring","data.table","pryr")
+seed_number <- 1
+
+
+# =================================  Determine system env  ================================
+
+# LOCAL
+if(.Platform$OS =='windows') {
+  cluster <- FALSE
+  Mac <- FALSE
+}
+
+# HPCBTO
+if(.Platform$OS=='unix' & Sys.getenv('USER')=='samf') {
+  cluster <- TRUE
+  Mac <- FALSE
+  Wales <- FALSE
+}
+
+# Mac
+if(.Platform$OS=='unix' & Sys.getenv('USER')=='samantha') {
+  cluster <- FALSE
+  Mac <- TRUE
+  Wales <- FALSE
+}
+
+# =======================    Read header source code   =================
+
+# header code source:
+# 1. sets working directories
+# 2. loads required packages
+# 3. prints session info to file
+# 4. sets seed for reproducibility
+
+# BTO cluster
+if (cluster) source(paste("/users1/samf", "source_setup_code.R", sep="/"))
+
+# either PC or Mac
+if (!cluster) {
+  if (!Mac) source(paste("C:/Users/samf/Documents/Git/source_code", "source_setup_code.R", sep="/"))
+  if (Mac) source(paste("/Volumes/SAM250GB/BTO PC Documents/Git/source_code", "source_setup_code.R", sep="/"))
+}
+
+# project directories created:
+# parentwd = Git
+# projectwd = eurasian_african_bird_migration_atlas
+# codewd = directory containing code, functions, source, etc
+# datawd = directory containing data
+# outputwd = directory containing outputs and results (within the appropriate version date)
+# workspacewd = directory containing workspace files (.rds, .rda, .RData; within the appropriate version date)
+# topoutputwd = top level output directory
+# topworkspacewd= top level workspace directory
+
+
+
+# =================================  Load functions =================================
+
+## Load any functions here
+
+```
+
+<style type="text/css">
+
+code.r {
+  font-size: 14px;
+  line-height: 1.2;
+}
+pre {
+  font-size: 14px;
+  line-height: 1.2;
+}
+</style>
+
+## Why `data.table`?
+
+We all use data.frames as a base R default.
+
+```{r iris-example-data-frame, echo = TRUE}
+head(iris)
+str(iris)
+```
+***
+Some might use tidyverse tibbles.
+
+```{r iris-example-tibble, echo = TRUE}
+as_tibble(iris)
+as_tibble(iris) %>% str
+```
+
+## Working with big data in R
+
+Many will be familiar with a big dataset slowly grinding R and their machine to a halt using 'traditional' R data types.
+
+### Why?
+
+- R reads entire datasets into RAM all at once. Other programs can read file sections on demand.
+- R objects live entirely in memory.
+- R does not have a 64-bit integer data type, meaning it is not possible to index objects with large numbers of rows & columns even in 64 bit systems (2 billion vector index limit); hence a file size limit around 2-4 GB.
+
+*Source: [RPubs: Handling large datasets in R](https://rpubs.com/msundar/large_data_analysis)*
+
+***
+
+### What counts as big data?
+
+- *medium-sized* files that can be loaded in R
+    + within memory limit but processing is cumbersome
+    + typically in the 1-2 GB range
+- *large* files that cannot be loaded in R due to R / OS limitations as discussed above
+    + very large files (> 10 GB) that need distributed large-scale computing
+    + large files (typically 2 - 10 GB) that can still be processed locally using some work around solutions
+
+*Source: [RPubs: Handling large datasets in R](https://rpubs.com/msundar/large_data_analysis)*
+
+***
+
+### What counts as big data?
+
+- <div class="red">*medium-sized* files that can be loaded in R</div>
+    + within memory limit but processing is cumbersome
+    + typically in the 1-2 GB range
+- *large* files that cannot be loaded in R due to R / OS limitations as discussed above
+    + very large files (> 10 GB) that need distributed large-scale computing
+    + <div class="red">large files (typically 2 - 10 GB) that can still be processed locally using some work around solutions</div>
+
+*Source: [RPubs: Handling large datasets in R](https://rpubs.com/msundar/large_data_analysis)*
+
+## Enter `data.table`
+
+### Benefits
+
+- Reduces programming time
+- Reduces compute time by automatically optimising operations
+  + fast, memory-efficient code
+- Concise & consistent syntax
+
+
+### These features make data.table ideal for working with BTO datasets
+
+## Real-life speed comparison example: loading a big dataset
+
+```{r read-in-data-table, eval=FALSE, echo=TRUE}
+
+system.time(
+  dt1 <- fread(paste("file_path", "big_dataset", sep="/"))
+)
+#    user  system elapsed 
+#   76.94   13.22   99.27
+
+#                            Type       Size      PrettySize     Rows Columns
+# dt1                  data.table 5675878728    [1] "5.3 Gb" 21389672      35
+
+```
+
+```{r read-in-data-frame, eval=FALSE, echo=TRUE}
+
+system.time(
+  dt2 <-  read.table(
+    paste("file_path", "big_dataset", sep="/"), 
+    sep="|", fill=TRUE)
+)
+#    user  system elapsed 
+#  330.78  100.58  447.76 
+# 
+#                        Type       Size      PrettySize     Rows Columns
+# dt2              data.frame 3607536808    [1] "3.4 Gb" 21389673      35
+
+```
+
+## Real-life speed comparison example: loading a big dataset
+
+- The raw file size on disk of `big_dataset` was 2.7 Gb.
+- Compare the read-in time using `data.table::fread` vs `read.table`
+    + `fread` is 4.5 times faster!
+- Despite taking up more RAM, `dt1` using `fread` was much faster to load
+
+## I'm intrigued: where do I find out more?
+data.table vignettes on CRAN are the best starting point, but more complex and newer operations (like joins) have been poorly documented
+
+Best vignettes to start off with:
+
+1. [Introduction to data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html)
+2. [Reference semantics](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html)
+3. [Keys and fast subset](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-keys-fast-subset.html)
+
+If you want more:
+
+4. [Secondary indices and auto-indexing](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-secondary-indices-and-auto-indexing.html)
+5. [Reshaping data](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html)
+
+
+# How does it work?
+
+## Reading in data
+
+`fread` is highly customisable. It can automatically detect and correctly handle or assign field names, rows with missing data, and data types, but you can customise these if you want.
+
+```{r fread-example-1, eval=FALSE, echo=TRUE}
+dt1 <- fread(paste("file_path", "big_dataset", sep="/")) # your file
+```
+
+```{r fread-example, eval=FALSE, echo=TRUE}
+dt1 <- fread(paste("file_path", "big_dataset", sep="/"), # your file
+           na.strings=c("-", "--", "---", "----", "-----"),  
+           # character strings that be interpreted as NA
+           drop=c(10,12,15,20), 
+           # vector of column numbers (can also use names) to drop;
+           # you can also use the select= argument instead
+           colClasses=list(character=
+                             c(
+                               "spec.byringer",
+                               "spec.byscheme",
+                               "date.numeric",
+                               "capture.hour",
+                               "capture.minute",
+                               "circumstances",
+                               "direction")) 
+           # used for rare overrides;
+           # fread automatically assigns the lowest data type possible to optimise speed
+           # in this case, fields have leading zeros so I want to preserve as character
+           )
+```
+
+## Syntax
+
+`data.table` syntax is SQL-like in nature:
+
+``` {r syntax-example, eval=FALSE, echo=TRUE}
+DT[i, j, by]
+##   R:                 i                                j          by
+## SQL:  where | order by   select | update | compute | do    group by
+```
+Or reading it out loud as:
+
+**Take `DT`, subset/reorder rows using `i`, then calculate `j`, grouped by `by`.**
+
+## Load data and inspect
+```{r load-dt-data, cache=TRUE, echo=TRUE}
+dt <- readRDS(paste(datawd, "example_ringing_data.rds", sep="/")) # load reduced GBT ringing data as RDS file
+dt
+```
+***
+```{r look-at-dt-str, echo=TRUE}
+str(dt)
+```
+
+## Working with `i`: subset & reorder
+``` {r i-subset-example-1, echo=TRUE}
+# subset all curlew; dt[species=="05410"] without comma is ok too
+dt[species=="05410",]
+```
+***
+``` {r i-subset-example-2, echo=TRUE}
+ # subset all curlew, encountered in Norfolk or Lincs, since 2010
+dt[species=="05410" & (place.code=="GBNK" | place.code=="GBLI") & year(date) >= 2010, ]
+```
+***
+``` {r i-order-example-1, echo=TRUE}
+ # order all individuals by encounter history (by ring, then date)
+dt[order(ring,date), ]
+```
+***
+``` {r i-order-example-2, echo=TRUE}
+# or by reverse encounter history
+dt[order(ring,-date), ]
+```
+
+## Working with `j`: select, compute/do, update
+**Select** `species`, return as a vector
+``` {r j-select-example-1, echo=TRUE}
+dt[, species]
+```
+
+***
+
+**Select** `list(species)` or `.(species)`, return as a `data.table`
+``` {r j-select-example-2, echo=TRUE}
+dt[, .(species)]
+```
+
+***
+
+**Select** `c("species")`, return as a `data.table`
+``` {r j-select-example-3, echo=TRUE}
+dt[, c("species")]
+```
+
+***
+
+**Select** `list(species, place.code)`, return as a `data.table`
+``` {r j-select-example-4, echo=TRUE}
+dt[, list(species, place.code)]
+```
+
+***
+
+**Select** columns named in variable - requires the `..` prefix
+``` {r j-select-example-5, echo=TRUE}
+select_cols <- c("species","place.code")
+dt[, ..select_cols]
+```
+***
+To add another variable name in your `j` call, add the `with=FALSE` argument
+``` {r j-select-example-6, echo=TRUE}
+select_cols <- c("species","place.code")
+dt[, c(select_cols, "age"), with=FALSE]
+```
+
+***
+
+**Subset** in `i` and **compute/do** in `j`
+``` {r ij-example-1, echo=TRUE}
+# For all curlew encountered in Norfolk, what's the average encounter month?
+dt[species=="05410" & place.code=="GBNK", list(mean.month = mean(month(date)))]
+# For all curlew, what's the most northwesterly encounter location?
+dt[species=="05410", list(max.lat = max(lat), max.lon = max(lon))]
+```
+This is probably an erroneous coordinate! [Where is this?](https://www.google.co.uk/maps/place/70%C2%B013'00.1%22N+53%C2%B055'00.1%22E/@69.8248088,43.7348011,1495564m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d70.2167!4d53.9167)
+
+***
+
+Something more complicated - a nested statement:
+
+- **Subset** curlew, Norfolk, ringing encounter;
+- **Select** ring as a vector;
+- Use this to **subset** `dt` again by ring (i.e. all encounters, for all curlew who were ringed in Norfolk);
+- **Compute/do**: most northwesterly, post-ringing (metal.ring=4) encounter location
+
+``` {r ij-example-2, echo=TRUE}
+dt[ring %in% dt[species=="05410" & place.code=="GBNK" & metal.ring==1, ring] & metal.ring==4, 
+   list(max.lat = max(lat), max.lon = max(lon))]
+```
+[Where is this?](https://www.google.co.uk/maps/place/65%C2%B049'59.9%22N+53%C2%B054'00.0%22E/@64.4676729,54.3407747,1627775m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d65.8333!4d53.9)
+
+## Working with `by`: group or aggregate
+
+The handy special symbol: `.N` - it's your friend!
+``` {r by-example-1, echo=TRUE}
+# Number of different place.codes for curlew
+dt[species=="05410", .N, place.code]
+```
+
+***
+
+You can also **chain** statements together using `dt[...][...]`
+Let's **group** and use `.N`, then **chain**
+``` {r by-example-2, echo=TRUE}
+# Number of different place.codes for curlew
+# Reverse ordered by number of records
+dt[species=="05410", .N, place.code][order(-N),]
+
+# The UK wins top 5: Highland, Tees (Hartlepool), Gwynedd (SCAN), the Wash
+```
+
+***
+
+``` {r by-example-3, echo=TRUE}
+# Ordered alphabetically
+dt[species=="05410", .N, place.code][order(place.code),]
+```
+
+
