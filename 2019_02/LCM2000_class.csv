@@ -1,0 +1,27 @@
+LCM2000_class,Code,AggCode,Class,Desc
+Broadleaf_woodland,1.1,1,BWOOD,Broad-leaved / mixed woodland
+Coniferous_woodland,2.1,2,CWOOD,Coniferous woodland
+Arable_cereals,4.1,3,ARABL,Arable and horticulture         
+Arable_horticulture,4.2,3,ARABL,Arable and horticulture         
+Non_rotational_horticulture,4.3,3,ARABL,Arable and horticulture         
+Improved_grassland,5.1,4,IGRAS,Improved grassland              
+Setaside_grassland,5.2,5,NGRAS,Semi-natural grass
+Neutral_grassland,6.1,5,NGRAS,Semi-natural grass
+Calcareous_grassland,7.1,5,NGRAS,Semi-natural grass
+Acid_grassland,8.1,5,NGRAS,Semi-natural grass
+Bracken,9.1,5,NGRAS,Semi-natural grass
+Dense_dwarf_shrub_heath,10.1,6,MHEBO,"Mountain, heath, bog            "
+Open_dwarf_scrub_heath,10.2,6,MHEBO,"Mountain, heath, bog            "
+Fen_marsh_swamp,11.1,5,NGRAS,Semi-natural grass
+Bogs,12.1,6,MHEBO,"Mountain, heath, bog            "
+Water_inland,13.1,8,OWATR,Standing open water
+Montane,15.1,6,MHEBO,"Mountain, heath, bog            "
+Inland_bare_ground,16.1,6,MHEBO,"Mountain, heath, bog            "
+Suburban_rural_developed,17.1,7,URB,Urban
+Continuous_urban,17.2,7,URB,Urban
+Supra_littoral_rock,18.1,9,CST,Coastal                         
+Supra_littoral_sediment,19.1,9,CST,Coastal                         
+Littoral_rock,20.1,9,CST,Coastal                         
+Littoral_sediment,21.1,9,CST,Coastal                         
+Saltmarsh,21.2,9,CST,Coastal                         
+Sea_Estuary,22.1,10,SEA,Oceanic seas                   
