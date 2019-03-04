@@ -292,6 +292,8 @@ large files (typically 2 - 10 GB) that can still be processed locally using some
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>How does it work?</h2></hgroup><article  id="how-does-it-work">
 
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>The Basics</h2></hgroup><article  id="the-basics">
+
 </article></slide><slide class=""><hgroup><h2>Reading in data</h2></hgroup><article  id="reading-in-data">
 
 <p><code>fread</code> is highly customisable. It can automatically detect and correctly handle or assign field names, rows with missing data, and data types, but you can customise these if you want.</p>
@@ -13066,7 +13068,7 @@ dt[order(ring,-date), ]</pre>
 
 </article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
 
-<p><strong>Select</strong> columns named in variable</p>
+<p><strong>Select</strong> columns named in variable - requires the <code>..</code> prefix</p>
 
 <pre class = 'prettyprint lang-r'>select_cols &lt;- c(&quot;species&quot;,&quot;place.code&quot;)
 dt[, ..select_cols]</pre>
@@ -13083,6 +13085,8 @@ dt[, ..select_cols]</pre>
 ## 7444084:   12760       GBSR
 ## 7444085:   12760       GBSR
 ## 7444086:   12770       GBSR</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
 
 <p>To add another variable name in your <code>j</code> call, add the <code>with=FALSE</code> argument</p>
 
@@ -13118,11 +13122,18 @@ dt[species==&quot;05410&quot;, list(max.lat = max(lat), max.lon = max(lon))]</pr
 <pre >##    max.lat max.lon
 ## 1: 70.2167 53.9167</pre>
 
-<p>This is probably an erroneous coordinate! <a href='https://www.google.co.uk/maps/place/70%C2%B013&#39;00.1%22N+53%C2%B055&#39;00.1%22E/@69.8248088,43.7348011,1495564m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d70.2167!4d53.9167' title=''>Map</a></p>
+<p>This is probably an erroneous coordinate! <a href='https://www.google.co.uk/maps/place/70%C2%B013&#39;00.1%22N+53%C2%B055&#39;00.1%22E/@69.8248088,43.7348011,1495564m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d70.2167!4d53.9167' title=''>Where is this?</a></p>
 
 </article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
 
-<p>Something more complicated - a nested statement: - <strong>Subset</strong> curlew, Norfolk, ringing encounter; - <strong>Select</strong> ring as a vector; - Use this to <strong>subset</strong> <code>dt</code> again by ring (i.e. all encounters, for all curlew who were ringed in Norfolk); - <strong>Compute/do</strong>: most northwesterly, post-ringing (metal.ring=4) encounter location</p>
+<p>Something more complicated - a nested statement:</p>
+
+<ul>
+<li><strong>Subset</strong> curlew, Norfolk, ringing encounter;</li>
+<li><strong>Select</strong> ring as a vector;</li>
+<li>Use this to <strong>subset</strong> <code>dt</code> again by ring (i.e. all encounters, for all curlew who were ringed in Norfolk);</li>
+<li><strong>Compute/do</strong>: most northwesterly, post-ringing (metal.ring=4) encounter location</li>
+</ul>
 
 <pre class = 'prettyprint lang-r'>dt[ring %in% dt[species==&quot;05410&quot; &amp; place.code==&quot;GBNK&quot; &amp; metal.ring==1, ring] &amp; metal.ring==4, 
    list(max.lat = max(lat), max.lon = max(lon))]</pre>
@@ -13130,7 +13141,7 @@ dt[species==&quot;05410&quot;, list(max.lat = max(lat), max.lon = max(lon))]</pr
 <pre >##    max.lat max.lon
 ## 1: 65.8333    53.9</pre>
 
-<p><a href='https://www.google.co.uk/maps/place/65%C2%B049&#39;59.9%22N+53%C2%B054&#39;00.0%22E/@64.4676729,54.3407747,1627775m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d65.8333!4d53.9' title=''>Map</a></p>
+<p><a href='https://www.google.co.uk/maps/place/65%C2%B049&#39;59.9%22N+53%C2%B054&#39;00.0%22E/@64.4676729,54.3407747,1627775m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d65.8333!4d53.9' title=''>Where is this?</a></p>
 
 </article></slide><slide class=""><hgroup><h2>Working with <code>by</code>: group or aggregate</h2></hgroup><article  id="working-with-by-group-or-aggregate">
 
@@ -13173,7 +13184,9 @@ dt[species==&quot;05410&quot;, .N, place.code][order(-N),]</pre>
 ## 211:       SV50    1
 ## 212:       ERCV    1</pre>
 
-<p>The UK wins top 5: Highland, Tees (Hartlepool), Gwynedd (SCAN), the Wash</p>
+<pre class = 'prettyprint lang-r'># The UK wins top 5: Highland, Tees (Hartlepool), Gwynedd (SCAN), the Wash</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
 
 <pre class = 'prettyprint lang-r'># Ordered alphabetically
 dt[species==&quot;05410&quot;, .N, place.code][order(place.code),]</pre>
@@ -13189,7 +13202,345 @@ dt[species==&quot;05410&quot;, .N, place.code][order(place.code),]</pre>
 ## 209:       SV59  1
 ## 210:       SV60 12
 ## 211:       SV61  3
-## 212:       SV64  2</pre></article></slide>
+## 212:       SV64  2</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>What about grouping by multiple variables at once? Use <code>list</code> or <code>.</code> or <code>c(&quot;var1&quot;, &quot;var2&quot;)</code></p>
+
+<pre class = 'prettyprint lang-r'>dt[species==&quot;05410&quot;, .N, .(age, sex)][order(age, sex),]</pre>
+
+<pre >##     age sex    N
+##  1:   0   F  174
+##  2:   0   M  258
+##  3:   0   U 4501
+##  4:   1   F    1
+##  5:   1   M    2
+##  6:   1   U  602
+##  7:   2   F    5
+##  8:   2   M    9
+##  9:   2   U  244
+## 10:   3   F   16
+## 11:   3   M   27
+## 12:   3   U  103
+## 13:   4   F   83
+## 14:   4   M  107
+## 15:   4   U 1809
+## 16:   5   F    3
+## 17:   5   M    5
+## 18:   5   U   51
+## 19:   6   F   14
+## 20:   6   M   24
+## 21:   6   U  412
+##     age sex    N</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>What about <strong>compute/do</strong> on multiple columns in <code>j</code>, while <strong>grouping</strong> with <code>by</code>?</p>
+
+<ul>
+<li>Use the special symbol <code>.SD</code> (meaning <strong>S</strong>ubset of <strong>D</strong>ata)
+
+<ul>
+<li><code>.SD</code> is a data.table holding the data for the group defined using <code>by</code></li>
+</ul></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'># .SD contains all other columns EXCEPT the grouping column in by
+iris_data_table[, lapply(.SD, mean), by = Species]</pre>
+
+<pre >##       Species Sepal.Length Sepal.Width Petal.Length Petal.Width
+## 1:     setosa        5.006       3.428        1.462       0.246
+## 2: versicolor        5.936       2.770        4.260       1.326
+## 3:  virginica        6.588       2.974        5.552       2.026</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Don&#39;t want to <strong>compute</strong> on all your columns?</p>
+
+<ul>
+<li>You can specify exactly which columns you want to <strong>compute</strong> by using <code>.SDcols</code></li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[, lapply(.SD, mean), by = Species, .SDcols=c(&quot;Petal.Length&quot;,&quot;Petal.Width&quot;)]</pre>
+
+<pre >##       Species Petal.Length Petal.Width
+## 1:     setosa        1.462       0.246
+## 2: versicolor        4.260       1.326
+## 3:  virginica        5.552       2.026</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Use <code>i, j, by, .SD and .SDcols</code> all at once!</p>
+
+<ul>
+<li>select a <strong>subset</strong> of species: blue tit (14620), barn swallow (09920), bar-tailed godwit (05340)</li>
+<li><strong>compute</strong> the min lat and lon (specificed by <code>.SD</code> and <code>.SDcols</code>) <code>by</code> species</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>dt[species %in% c(&quot;14620&quot;,&quot;09920&quot;,&quot;05340&quot;), # subset using
+   lapply(.SD, min), # compute in j using .SD and your function
+   by=species, # by to group
+   .SDcols=c(&quot;lat&quot;, &quot;lon&quot;)] # .SD cols to specify which columns to use in j</pre>
+
+<pre >##    species      lat      lon
+## 1:   14620  35.7167 -10.4542
+## 2:   09920 -34.8000 -30.0000
+## 3:   05340 -18.0000 -17.0333</pre>
+
+<p>Can you tell what the migration strategy is?</p>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Reference semantics: add, update &amp; delete columns</h2></hgroup><article  id="reference-semantics-add-update-delete-columns">
+
+</article></slide><slide class=""><hgroup><h2><code>data.table</code> methods are a lot faster than <code>data.frame</code> methods</h2></hgroup><article  id="data.table-methods-are-a-lot-faster-than-data.frame-methods">
+
+<h3>Why?</h3>
+
+<p>Updating by reference in <code>data.frame</code> makes a <strong>copy</strong> of the entire dataset in memory</p>
+
+<p>Add a new column</p>
+
+<pre class = 'prettyprint lang-r'>iris$Stem.Length &lt;- rnorm(nrow(iris), mean = 30, sd = 5)
+head(iris)</pre>
+
+<pre >##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species Stem.Length
+## 1          5.1         3.5          1.4         0.2  setosa     26.8677
+## 2          4.9         3.0          1.4         0.2  setosa     30.9182
+## 3          4.7         3.2          1.3         0.2  setosa     25.8219
+## 4          4.6         3.1          1.5         0.2  setosa     37.9764
+## 5          5.0         3.6          1.4         0.2  setosa     31.6475
+## 6          5.4         3.9          1.7         0.4  setosa     25.8977</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Update a whole column</p>
+
+<pre class = 'prettyprint lang-r'>iris$Stem.Length &lt;- rnorm(nrow(iris), mean = 35, sd = 5)
+head(iris)</pre>
+
+<pre >##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species Stem.Length
+## 1          5.1         3.5          1.4         0.2  setosa     37.2509
+## 2          4.9         3.0          1.4         0.2  setosa     34.9072
+## 3          4.7         3.2          1.3         0.2  setosa     33.4097
+## 4          4.6         3.1          1.5         0.2  setosa     30.3532
+## 5          5.0         3.6          1.4         0.2  setosa     27.5627
+## 6          5.4         3.9          1.7         0.4  setosa     29.6240</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Update values (i.e. sub-assign) in a column</p>
+
+<pre class = 'prettyprint lang-r'>iris$Stem.Length[iris$Species == &quot;setosa&quot;] &lt;- rnorm(length(iris$Stem.Length[iris$Species == &quot;setosa&quot;]), mean=40, sd=5)
+head(iris)</pre>
+
+<pre >##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species Stem.Length
+## 1          5.1         3.5          1.4         0.2  setosa     44.4684
+## 2          4.9         3.0          1.4         0.2  setosa     34.7635
+## 3          4.7         3.2          1.3         0.2  setosa     49.8567
+## 4          4.6         3.1          1.5         0.2  setosa     38.0818
+## 5          5.0         3.6          1.4         0.2  setosa     48.2707
+## 6          5.4         3.9          1.7         0.4  setosa     47.5611</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Delete a column</p>
+
+<pre class = 'prettyprint lang-r'>iris$Stem.Length &lt;- NULL
+head(iris)</pre>
+
+<pre >##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+## 1          5.1         3.5          1.4         0.2  setosa
+## 2          4.9         3.0          1.4         0.2  setosa
+## 3          4.7         3.2          1.3         0.2  setosa
+## 4          4.6         3.1          1.5         0.2  setosa
+## 5          5.0         3.6          1.4         0.2  setosa
+## 6          5.4         3.9          1.7         0.4  setosa</pre>
+
+</article></slide><slide class=""><hgroup><h2>What does <code>data.table</code> do?</h2></hgroup><article  id="what-does-data.table-do">
+
+<p><code>data.table</code> uses the <code>:=</code> operator, which updates columns <em>in place</em> (by reference)</p>
+
+<p>Add a new column</p>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[,Stem.Length := rnorm(nrow(iris), mean = 30, sd = 5)][]</pre>
+
+<pre >##      Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+##   1:          5.1         3.5          1.4         0.2    setosa
+##   2:          4.9         3.0          1.4         0.2    setosa
+##   3:          4.7         3.2          1.3         0.2    setosa
+##   4:          4.6         3.1          1.5         0.2    setosa
+##   5:          5.0         3.6          1.4         0.2    setosa
+##  ---                                                            
+## 146:          6.7         3.0          5.2         2.3 virginica
+## 147:          6.3         2.5          5.0         1.9 virginica
+## 148:          6.5         3.0          5.2         2.0 virginica
+## 149:          6.2         3.4          5.4         2.3 virginica
+## 150:          5.9         3.0          5.1         1.8 virginica
+##      Stem.Length
+##   1:     37.3694
+##   2:     33.3863
+##   3:     31.8998
+##   4:     29.0360
+##   5:     37.8895
+##  ---            
+## 146:     24.4555
+## 147:     31.5378
+## 148:     24.4655
+## 149:     31.7383
+## 150:     25.6337</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Update a whole column</p>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[, Stem.Length := rnorm(nrow(iris), mean = 35, sd = 5)][]</pre>
+
+<pre >##      Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+##   1:          5.1         3.5          1.4         0.2    setosa
+##   2:          4.9         3.0          1.4         0.2    setosa
+##   3:          4.7         3.2          1.3         0.2    setosa
+##   4:          4.6         3.1          1.5         0.2    setosa
+##   5:          5.0         3.6          1.4         0.2    setosa
+##  ---                                                            
+## 146:          6.7         3.0          5.2         2.3 virginica
+## 147:          6.3         2.5          5.0         1.9 virginica
+## 148:          6.5         3.0          5.2         2.0 virginica
+## 149:          6.2         3.4          5.4         2.3 virginica
+## 150:          5.9         3.0          5.1         1.8 virginica
+##      Stem.Length
+##   1:     35.3865
+##   2:     33.5157
+##   3:     29.0838
+##   4:     35.0565
+##   5:     39.9580
+##  ---            
+## 146:     27.0336
+## 147:     39.2390
+## 148:     25.7481
+## 149:     33.3817
+## 150:     33.7238</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Update values (i.e. sub-assign) in a column</p>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[Species==&quot;setosa&quot;, Species := &quot;pseudacorus&quot;][]</pre>
+
+<pre >##      Sepal.Length Sepal.Width Petal.Length Petal.Width     Species
+##   1:          5.1         3.5          1.4         0.2 pseudacorus
+##   2:          4.9         3.0          1.4         0.2 pseudacorus
+##   3:          4.7         3.2          1.3         0.2 pseudacorus
+##   4:          4.6         3.1          1.5         0.2 pseudacorus
+##   5:          5.0         3.6          1.4         0.2 pseudacorus
+##  ---                                                              
+## 146:          6.7         3.0          5.2         2.3   virginica
+## 147:          6.3         2.5          5.0         1.9   virginica
+## 148:          6.5         3.0          5.2         2.0   virginica
+## 149:          6.2         3.4          5.4         2.3   virginica
+## 150:          5.9         3.0          5.1         1.8   virginica
+##      Stem.Length
+##   1:     35.3865
+##   2:     33.5157
+##   3:     29.0838
+##   4:     35.0565
+##   5:     39.9580
+##  ---            
+## 146:     27.0336
+## 147:     39.2390
+## 148:     25.7481
+## 149:     33.3817
+## 150:     33.7238</pre>
+
+</article></slide><slide class=""><hgroup><h2></h2></hgroup><article >
+
+<p>Delete a column</p>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[, Stem.Length := NULL][]</pre>
+
+<pre >##      Sepal.Length Sepal.Width Petal.Length Petal.Width     Species
+##   1:          5.1         3.5          1.4         0.2 pseudacorus
+##   2:          4.9         3.0          1.4         0.2 pseudacorus
+##   3:          4.7         3.2          1.3         0.2 pseudacorus
+##   4:          4.6         3.1          1.5         0.2 pseudacorus
+##   5:          5.0         3.6          1.4         0.2 pseudacorus
+##  ---                                                              
+## 146:          6.7         3.0          5.2         2.3   virginica
+## 147:          6.3         2.5          5.0         1.9   virginica
+## 148:          6.5         3.0          5.2         2.0   virginica
+## 149:          6.2         3.4          5.4         2.3   virginica
+## 150:          5.9         3.0          5.1         1.8   virginica</pre>
+
+</article></slide><slide class=""><hgroup><h2>Add <strong>multiple</strong> columns by reference</h2></hgroup><article  id="add-multiple-columns-by-reference">
+
+<p>Use <code>`:=`</code> notation instead of <code>LHS := RHS</code> notation. An example adding mean Sepal Length and Width, grouping by Species</p>
+
+<pre class = 'prettyprint lang-r'>iris_data_table[, `:=` (mean.Sepal.Length = mean(Sepal.Length),
+                        mean.Sepal.Width = mean(Sepal.Width)
+                        ),
+                by = Species][]</pre>
+
+<pre >##      Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
+##   1:          5.1         3.5          1.4         0.2    setosa
+##   2:          4.9         3.0          1.4         0.2    setosa
+##   3:          4.7         3.2          1.3         0.2    setosa
+##   4:          4.6         3.1          1.5         0.2    setosa
+##   5:          5.0         3.6          1.4         0.2    setosa
+##  ---                                                            
+## 146:          6.7         3.0          5.2         2.3 virginica
+## 147:          6.3         2.5          5.0         1.9 virginica
+## 148:          6.5         3.0          5.2         2.0 virginica
+## 149:          6.2         3.4          5.4         2.3 virginica
+## 150:          5.9         3.0          5.1         1.8 virginica
+##      mean.Sepal.Length mean.Sepal.Width
+##   1:             5.006            3.428
+##   2:             5.006            3.428
+##   3:             5.006            3.428
+##   4:             5.006            3.428
+##   5:             5.006            3.428
+##  ---                                   
+## 146:             6.588            2.974
+## 147:             6.588            2.974
+## 148:             6.588            2.974
+## 149:             6.588            2.974
+## 150:             6.588            2.974</pre>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Using keys for fast subsetting</h2></hgroup><article  id="using-keys-for-fast-subsetting">
+
+</article></slide><slide class=""><hgroup><h2>How do you set a key?</h2></hgroup><article  id="how-do-you-set-a-key">
+
+<pre class = 'prettyprint lang-r'>setkey(dt, ring, date)
+key(dt)</pre>
+
+<pre >## [1] &quot;ring&quot; &quot;date&quot;</pre>
+
+</article></slide><slide class=""><hgroup><h2>What does setting a key do?</h2></hgroup><article  id="what-does-setting-a-key-do">
+
+<ol>
+<li>Physically reorders the rows of the data.table by the column(s) provided by reference, always in increasing order</li>
+<li>Marks columns as keyed columns by setting an attribute called <code>sorted</code> to the data.table</li>
+</ol>
+
+</article></slide><slide class=""><hgroup><h2>Why does it result in fast subsetting?</h2></hgroup><article  id="why-does-it-result-in-fast-subsetting">
+
+<p>Keying a data.table allows it to be searched by <strong>binary search</strong> vs <strong>vector scan</strong>:</p>
+
+<ol>
+<li>Vector scan:
+
+<ul>
+<li>The column <code>x</code> is searched for the value <strong><strong>Y</strong></strong> <em>row by row</em>, resulting in a logical vector with <code>TRUE, FALSE or NA</code> corresponding to <code>x</code>&#39;s value</li>
+</ul></li>
+<li>Binary search:
+
+<ul>
+<li>Because we know the data are sorted by <code>x</code>, start searching with the middle value, <em>M</em></li>
+<li>Is <strong><strong>Y</strong></strong> larger or smaller than <em>M</em>?</li>
+<li>If <strong><strong>Y</strong></strong> &lt; <em>M</em>, discard all values &gt;= <em>M</em> and search the remaining data</li>
+<li>Repeat, each time shrinking the remaining data to be searched by half</li>
+</ul></li>
+</ol>
+
+</article></slide><slide class=""><hgroup><h2>How do you remove a key?</h2></hgroup><article  id="how-do-you-remove-a-key"></article></slide>
 
 
   <slide class="backdrop"></slide>
