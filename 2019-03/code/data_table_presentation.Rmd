@@ -211,6 +211,8 @@ If you want more:
 
 # How does it work?
 
+# The Basics
+
 ## Reading in data
 
 `fread` is highly customisable. It can automatically detect and correctly handle or assign field names, rows with missing data, and data types, but you can customise these if you want.
@@ -240,6 +242,11 @@ dt1 <- fread(paste("file_path", "big_dataset", sep="/"), # your file
            # in this case, fields have leading zeros so I want to preserve as character
            )
 ```
+
+```{r convert-iris-to-data-table}
+iris_data_table <- data.table(iris)
+```
+
 
 ## Syntax
 
@@ -352,6 +359,7 @@ dt[ring %in% dt[species=="05410" & place.code=="GBNK" & metal.ring==1, ring] & m
 ```
 [Where is this?](https://www.google.co.uk/maps/place/65%C2%B049'59.9%22N+53%C2%B054'00.0%22E/@64.4676729,54.3407747,1627775m/data=!3m1!1e3!4m5!3m4!1s0x0:0x0!8m2!3d65.8333!4d53.9)
 
+
 ## Working with `by`: group or aggregate
 
 The handy special symbol: `.N` - it's your friend!
@@ -379,4 +387,156 @@ dt[species=="05410", .N, place.code][order(-N),]
 dt[species=="05410", .N, place.code][order(place.code),]
 ```
 
+***
 
+What about grouping by multiple variables at once? Use `list` or `.` or `c("var1", "var2")`
+``` {r by-example-4, echo=TRUE}
+dt[species=="05410", .N, .(age, sex)][order(age, sex),]
+```
+
+***
+
+What about **compute/do** on multiple columns in `j`, while **grouping** with `by`?
+
+- Use the special symbol `.SD` (meaning **S**ubset of **D**ata)
+    + `.SD` is a data.table holding the data for the group defined using `by`
+
+```{r j-example-SD-1, echo=TRUE}
+# .SD contains all other columns EXCEPT the grouping column in by
+iris_data_table[, lapply(.SD, mean), by = Species]
+```
+
+***
+
+Don't want to **compute** on all your columns?
+
+- You can specify exactly which columns you want to **compute** by using `.SDcols`
+
+```{r j-example-SD-2, echo=TRUE}
+iris_data_table[, lapply(.SD, mean), by = Species, .SDcols=c("Petal.Length","Petal.Width")]
+```
+
+***
+
+Use `i, j, by, .SD and .SDcols` all at once!
+
+- select a **subset** of species: blue tit (14620), barn swallow (09920), bar-tailed godwit (05340)
+- **compute** the min lat and lon (specificed by `.SD` and `.SDcols`) `by` species
+
+```{r j-example-SD-3, echo=TRUE}
+dt[species %in% c("14620","09920","05340"), # subset using
+   lapply(.SD, min), # compute in j using .SD and your function
+   by=species, # by to group
+   .SDcols=c("lat", "lon")] # .SD cols to specify which columns to use in j
+```
+
+Can you tell what the migration strategy is?
+
+# Reference semantics: add, update & delete columns
+
+## `data.table` methods are a lot faster than `data.frame` methods
+
+### **Why?**
+Updating by reference in `data.frame` makes a **copy** of the entire dataset in memory
+
+Add a new column
+```{r dataframe-update-1, echo=TRUE}
+iris$Stem.Length <- rnorm(nrow(iris), mean = 30, sd = 5)
+head(iris)
+```
+
+***
+
+Update a whole column
+```{r dataframe-update-2, echo=TRUE}
+iris$Stem.Length <- rnorm(nrow(iris), mean = 35, sd = 5)
+head(iris)
+```
+
+***
+
+Update values (i.e. sub-assign) in a column
+```{r dataframe-update-3, echo=TRUE}
+iris$Stem.Length[iris$Species == "setosa"] <- rnorm(length(iris$Stem.Length[iris$Species == "setosa"]), mean=40, sd=5)
+head(iris)
+```
+
+***
+Delete a column 
+```{r dataframe-update-4, echo=TRUE}
+iris$Stem.Length <- NULL
+head(iris)
+```
+
+## What does `data.table` do?
+`data.table` uses the `:=` operator, which updates columns *in place* (by reference)
+
+Add a new column
+```{r datatable-update-1, echo=TRUE}
+iris_data_table[,Stem.Length := rnorm(nrow(iris), mean = 30, sd = 5)][]
+```
+
+***
+
+Update a whole column
+```{r datatable-update-2, echo=TRUE}
+iris_data_table[, Stem.Length := rnorm(nrow(iris), mean = 35, sd = 5)][]
+```
+
+***
+
+Update values (i.e. sub-assign) in a column
+```{r datatable-update-3, echo=TRUE}
+iris_data_table[Species=="setosa", Species := "pseudacorus"][]
+```
+
+***
+
+Delete a column
+```{r datatable-update-4, echo=TRUE}
+iris_data_table[, Stem.Length := NULL][]
+```
+
+```{r reset-iris-datatable}
+iris_data_table[Species=="pseudacorus", Species := "setosa"]
+```
+
+## Add **multiple** columns by reference
+Use `` `:=` `` notation instead of `LHS := RHS` notation.
+An example adding mean Sepal Length and Width, grouping by Species
+```{r datatable-by-reference-multiple, echo=TRUE}
+iris_data_table[, `:=` (mean.Sepal.Length = mean(Sepal.Length),
+                        mean.Sepal.Width = mean(Sepal.Width)
+                        ),
+                by = Species][]
+```
+
+# Using keys for fast subsetting
+
+## How do you set a key?
+```{r set-key-example-1, echo=TRUE}
+setkey(dt, ring, date)
+key(dt)
+```
+
+## What does setting a key do?
+
+1. Physically reorders the rows of the data.table by the column(s) provided by reference, always in increasing order
+2. Marks columns as keyed columns by setting an attribute called `sorted` to the data.table
+
+## Why does it result in fast subsetting?
+Keying a data.table allows it to be searched by **binary search** vs **vector scan**:
+
+1. Vector scan:
+    + The column `x` is searched for the value __**Y**__ *row by row*, resulting in a logical vector with `TRUE, FALSE or NA` corresponding to `x`'s value
+2. Binary search:
+    + Because we know the data are sorted by `x`, start searching with the middle value, *M*
+    + Is __**Y**__ larger or smaller than *M*?
+    + If __**Y**__ < *M*, discard all values >= *M* and search the remaining data
+    + Repeat, each time shrinking the remaining data to be searched by half
+    
+
+## How do you remove a key?
+```{r set-key-example-2, echo=TRUE}
+setkey(dt, NULL)
+```

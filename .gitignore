@@ -11,8 +11,8 @@
 # Folders
 2019-02/
 2019-03/data
-2019-03/data_table_presentation_cache
-2019-03/data_table_presentation_files
+2019-03/code/data_table_presentation_cache
+2019-03/code/data_table_presentation_files
 
 # Output files from R CMD build
 /*.tar.gz
